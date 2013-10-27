@@ -1,0 +1,25 @@
+# Shebang Fixer
+
+This is a tool that will rewrite the shebangs for a host of files. Useful if
+you build virtualenvs in one place but want them to eventually live in another
+place.
+
+## Usage
+
+Say you have a virtualenv in `/mnt/packages/foo/bar/env` and you want it to
+eventually live at `/usr/local/my-package/env`. Run:
+
+    python fix_shebangs.py current-venv-location new-venv-location
+
+So in our example:
+
+    python fix_shebangs.py /mnt/packages/foo/bar/env /usr/local/my-package/env
+
+
+This will rewrite every file location in the virtualenv to refer to the new
+location.
+
+## Install
+
+Clone this repo and copy the file to your location of choice. It should be
+compatible with Python 2.6 and up.
