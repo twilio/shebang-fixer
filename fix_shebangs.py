@@ -1,7 +1,9 @@
+from __future__ import division
 import argparse
 import contextlib
 import logging
 import os
+import string
 import sys
 import subprocess
 
@@ -28,6 +30,26 @@ if os.path.isabs(args.target_venv_path):
 else:
     target_venv_path = os.path.join(os.getcwd(), args.target_venv_path)
     target_venv_bin_path = os.path.join(target_venv_path, "bin")
+
+
+def istext(filename):
+    s = open(filename).read(512)
+    text_characters = "".join(map(chr, range(32, 127)) + list("\n\r\t\b"))
+    _null_trans = string.maketrans("", "")
+    if not s:
+        # Empty files are considered text
+        return True
+    if "\0" in s:
+        # Files with null bytes are likely binary
+        return False
+    # Get the non-text characters (maps a character to itself then
+    # use the 'remove' option to get rid of the text characters.)
+    t = s.translate(_null_trans, text_characters)
+    # If more than 30% non-text characters, then
+    # this is considered a binary file
+    if len(t)/len(s) > 0.30:
+        return False
+    return True
 
 @contextlib.contextmanager
 def cd(path):
@@ -56,6 +78,10 @@ with cd(venv_bin_path):
             sed = 'sed -i.bak -E -e'
         else:
             sed = 'sed -i.bak -r -e'
+
+        if not istext(script):
+            logger.debug("skipping {} as it is a binary".format(script))
+            continue
 
         old_path = ('#!' + os.path.join(current_venv_path, 'bin/(.+)')).replace("/", r"\/")
         new_path = ('#!' + os.path.join(target_venv_bin_path, r'\1')).replace("/", r"\/")
