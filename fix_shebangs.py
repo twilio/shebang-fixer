@@ -8,6 +8,7 @@ import sys
 import subprocess
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--no-backup', action='store_true', help="Don't backup altered files")
 parser.add_argument('current_venv_path', help='The path to virtual environment')
 parser.add_argument('target_venv_path', help='The location of the new bin')
 args = parser.parse_args()
@@ -31,6 +32,10 @@ else:
     target_venv_path = os.path.join(os.getcwd(), args.target_venv_path)
     target_venv_bin_path = os.path.join(target_venv_path, "bin")
 
+if args.no_backup:
+    backup_extension = ''
+else:
+    backup_extension = '.bak'
 
 def istext(filename):
     s = open(filename).read(512)
@@ -75,9 +80,9 @@ with cd(venv_bin_path):
     for script in os.listdir(venv_bin_path):
         if sys.platform == "darwin":
             # assume BSD sed
-            sed = 'sed -i.bak -E -e'
+            sed = 'sed -i%s -E -e' % backup_extension
         else:
-            sed = 'sed -i.bak -r -e'
+            sed = 'sed -i%s -r -e' % backup_extension
 
         if not istext(script):
             logger.debug("skipping {} as it is a binary".format(script))
